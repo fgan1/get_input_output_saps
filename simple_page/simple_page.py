@@ -23,7 +23,7 @@ with open('%s/simple_page/conf.properties' % (local_path), 'r') as f:
         k, v = line.split("=", 1)
         properties[k] = v
 
-@simple_page.route('/', defaults={'page': 'index'})
+@simple_page.route('/', defaults={'page': 'input'})
 @simple_page.route('/<page>')
 def show(page):
     try:
