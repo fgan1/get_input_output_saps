@@ -1,0 +1,10 @@
+{% extends "pages/layout.html" %}
+{% block body %}
+  <form action="/output" method="post">
+	Nome da imagem:<br>
+	<input type="text" name="image"><br>
+	Tipo da variável:<br>
+	<input type="text" name="variable"><br>	
+	<input type="submit" value="Submit">
+  </form>
+{% endblock %}
