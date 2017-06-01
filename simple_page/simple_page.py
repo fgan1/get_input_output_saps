@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
 from flask import request
+import subprocess
 import os, sys
 
 SWIFT_URL_PROPERTIE="SWIFT_URL"
@@ -36,12 +37,13 @@ def get_input_url():
     swift_url = properties.get(SWIFT_URL_PROPERTIE)
     swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)	
     image_name = request.form['image']
+    print swift_url
 
-    image_temp_url = os.system("swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" 
-   		% (TEMP_URL_EXPIRATION_TIME, image_name, image_name, swift_key))
+    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" % (TEMP_URL_EXPIRATION_TIME, image_name, image_name, swift_key)
+    image_temp_url = subprocess.check_output(cmd, shell=True)
 
     url = "%s%s" % (swift_url, image_temp_url)
-    return render_template('pages/result.html', url=image_temp_url)
+    return render_template('pages/result.html', url=url)
 
 @simple_page.route('/output', methods=['POST'])
 def get_output_url():
@@ -50,8 +52,8 @@ def get_output_url():
     image_name = request.form['image']
     variable = request.form['variable']
 
-    image_temp_url = os.system("swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s_%s.nc %s" 
-   		% (TEMP_URL_EXPIRATION_TIME, image_name, image_name, variable, swift_key))
+    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/images/%s/%s_%s.nc %s" % (TEMP_URL_EXPIRATION_TIME, image_name, image_name, variable, swift_key)
+    image_temp_url = subprocess.check_output(cmd, shell=True)
 
     url = "%s%s" % (swift_url, image_temp_url)
-    return render_template('pages/result.html', url=image_temp_url)    
+    return render_template('pages/result.html', url=url)    
