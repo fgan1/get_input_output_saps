@@ -1,8 +1,15 @@
 from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
 from flask import request
+from sets import Set
 import subprocess
 import os, sys
+
+SWIFT_URL_PROPERTIE="SWIFT_URL"
+SWIFT_AUTH_TOKEN_KEY_PROPERTIE="SWIFT_AUTH_TOKEN"
+SWIFT_STORAGE_URL_KEY_PROPERTIE="SWIFT_STORAGE_URL_KEY_PROPERTIE"
+SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE="SWIFT_INPUT_FILES_PREFIX"
+SWIFT_OUTPUT_FILES_PREFIX_KEY_PROPERTIE="SWIFT_OUTPUT_FILES_PREFIX"
 
 SWIFT_URL_PROPERTIE="SWIFT_URL"
 SWIFT_TEMP_URL_KEY_PROPERTIE="SWIFT_TEMP_URL_KEY"
@@ -57,3 +64,39 @@ def get_output_url():
 
     url = "%s%s" % (swift_url, image_temp_url)
     return render_template('pages/result.html', url=url)    
+
+@simple_page.route('/input-list', methods=['GET'])
+def get_input_list_url():
+    swift_url = properties.get(SWIFT_URL_PROPERTIE)
+    swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+    swift_auth_token = # insert here a token generator
+    swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
+    input_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
+    swift_conatiner_name = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+    print swift_url
+
+    input_set = set()
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url, input_files_prefix, swift_conatiner_name)
+    for line in subprocess.subprocess.check_output(cmd, shell=True).split('\n'):
+        line_split = line.split('/')
+	input_set.add(line_split[-2])
+    
+    return render_template('pages/input-list.html', input_set=input_set)
+
+@simple_page.route('/output-list', methods=['GET'])
+def get_output_list_url():
+    swift_url = properties.get(SWIFT_URL_PROPERTIE)
+    swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+    swift_auth_token = # insert here a token generator
+    swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
+    input_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
+    swift_conatiner_name = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+    print swift_url
+
+    output_set = set()
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url, output_files_prefix, swift_conatiner_name)
+    for line in subprocess.subprocess.check_output(cmd, shell=True).split('\n'):
+        line_split = line.split('/')
+        output_set.add(line_split[-2])
+    
+    return render_template('pages/output-list.html', output_set=output_set)
