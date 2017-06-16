@@ -47,4 +47,10 @@ class OpenstackV3TokenGenerator(token_generator):
 
     @staticmethod
     def get_token_from_response(response):
-        pass
+        headers = response.headers
+
+        access_id = None
+        for key in headers.keys():
+            if key == 'X_SUBJECT_TOKEN':
+                access_id = headers.get(key)
+        return access_id
