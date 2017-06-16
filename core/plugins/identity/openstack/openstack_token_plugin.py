@@ -1,7 +1,6 @@
 from core.plugins.identity import token_generator
 from utils.constants import ApplicationConstants
 import ConfigParser
-import json
 import requests
 
 
@@ -43,7 +42,7 @@ class OpenstackV3TokenGenerator(token_generator):
 
     @staticmethod
     def do_post_request(current_token_endpoint, json_payload):
-        return requests.post(current_token_endpoint, data=json.dumps(json_payload))
+        return requests.post(current_token_endpoint, data=json_payload)
 
     @staticmethod
     def get_token_from_response(response):
