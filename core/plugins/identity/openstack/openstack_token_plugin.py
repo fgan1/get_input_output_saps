@@ -43,7 +43,7 @@ class OpenstackV3TokenGenerator(token_generator):
     @staticmethod
     def do_post_request(current_token_endpoint, json_payload):
         header = {ApplicationConstants.CONTENT_TYPE: ApplicationConstants.JSON_CONTENT_TYPE}
-        return requests.post(current_token_endpoint, data=json_payload, header=header)
+        return requests.post(current_token_endpoint, data=json_payload, headers=header)
 
     @staticmethod
     def get_token_from_response(response):
