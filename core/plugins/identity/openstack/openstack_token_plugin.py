@@ -2,6 +2,7 @@ from core.plugins.identity import token_generator
 from utils.constants import ApplicationConstants
 import ConfigParser
 import requests
+import logging
 
 
 class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
@@ -9,12 +10,25 @@ class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
     def __init__(self):
         super(token_generator.TokenGenerator, self).__init__()
         self.__config = ConfigParser.ConfigParser()
-        self.__config_section_map = self.__config.read(ApplicationConstants.DEFAULT_CONFIG_FILE_PATH)
-        self.__keystone_url = self.__config_section_map("SectionOne")["keystone_auth_url"]
-        self.__keystone_v3_auth_endpoint = self.__config_section_map("SectionOne")["keystone_v3_auth_endpoint"]
-        self.__project_id = self.__config_section_map("SectionTwo")["keystone_project_id"]
-        self.__user_id = self.__config_section_map("SectionTwo")["keystone_user_id"]
-        self.__password = self.__config_section_map("SectionTwo")["keystone_password"]
+        self.__config.read(ApplicationConstants.DEFAULT_CONFIG_FILE_PATH)
+        self.__keystone_url = self.config_section_map("SectionOne")["keystone_auth_url"]
+        self.__keystone_v3_auth_endpoint = self.config_section_map("SectionOne")["keystone_v3_auth_endpoint"]
+        self.__project_id = self.config_section_map("SectionTwo")["keystone_project_id"]
+        self.__user_id = self.config_section_map("SectionTwo")["keystone_user_id"]
+        self.__password = self.config_section_map("SectionTwo")["keystone_password"]
+
+    def config_section_map(self, section):
+        dict1 = {}
+        options = self.__config.options(section)
+        for option in options:
+            try:
+                dict1[option] = self.__config.get(section, option)
+                if dict1[option] == -1:
+                    logging.debug("skip: %s", option)
+            except Exception as e:
+                logging.debug(str(e))
+                dict1[option] = None
+        return dict1
 
     def create_token(self):
         if not self.validate_credentials(self.__project_id, self.__user_id, self.__password):
