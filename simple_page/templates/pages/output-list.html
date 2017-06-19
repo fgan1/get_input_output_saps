@@ -1,0 +1,8 @@
+{% extends "pages/layout.html" %}
+{% block body %}
+  <ul>
+  {% for output in output_list %}
+    <li><h2>{{ output }}</h2></li>
+  {% endfor %}
+  </ul>
+{% endblock %}

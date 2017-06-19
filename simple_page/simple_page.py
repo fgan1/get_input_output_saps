@@ -48,7 +48,9 @@ def get_input_url():
     image_name = request.form['image']
     print swift_url
 
-    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" % (TEMP_URL_EXPIRATION_TIME, image_name, image_name, swift_key)
+    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" % (TEMP_URL_EXPIRATION_TIME,
+                                                                                             image_name, image_name,
+                                                                                             swift_key)
     image_temp_url = subprocess.check_output(cmd, shell=True)
 
     url = "%s%s" % (swift_url, image_temp_url)
@@ -62,7 +64,9 @@ def get_output_url():
     image_name = request.form['image']
     variable = request.form['variable']
 
-    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/images/%s/%s_%s.nc %s" % (TEMP_URL_EXPIRATION_TIME, image_name, image_name, variable, swift_key)
+    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/images/%s/%s_%s.nc %s" % (TEMP_URL_EXPIRATION_TIME,
+                                                                                            image_name, image_name,
+                                                                                            variable, swift_key)
     image_temp_url = subprocess.check_output(cmd, shell=True)
 
     url = "%s%s" % (swift_url, image_temp_url)
