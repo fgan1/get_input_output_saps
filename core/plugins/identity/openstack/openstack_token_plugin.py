@@ -3,46 +3,54 @@ from utils.constants import ApplicationConstants
 import ConfigParser
 import requests
 import logging
+import os
 
 
 class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
 
     def __init__(self):
         super(token_generator.TokenGenerator, self).__init__()
-        self.__config = ConfigParser.ConfigParser()
-        self.__config.read(ApplicationConstants.DEFAULT_CONFIG_FILE_PATH)
-        self.__keystone_url = self.config_section_map("SectionOne")["keystone_auth_url"]
-        self.__keystone_v3_auth_endpoint = self.config_section_map("SectionOne")["keystone_v3_auth_endpoint"]
-        self.__project_id = self.config_section_map("SectionTwo")["keystone_project_id"]
-        self.__user_id = self.config_section_map("SectionTwo")["keystone_user_id"]
-        self.__password = self.config_section_map("SectionTwo")["keystone_password"]
-
-    def config_section_map(self, section):
-        dict1 = {}
-        options = self.__config.options(section)
-        for option in options:
-            try:
-                dict1[option] = self.__config.get(section, option)
-                if dict1[option] == -1:
-                    logging.debug("skip: %s", option)
-            except Exception as e:
-                logging.debug(str(e))
-                dict1[option] = None
-        return dict1
+        self.__properties = self.get_properties()
+        self.__keystone_url = self.__properties.get(ApplicationConstants.KEYSTONE_AUTH_URL_KEY_PROPERTY)
+        self.__keystone_url_endpoint = self.__properties.get(ApplicationConstants.KEYSTONE_AUTH_ENDPOINT_KEY_PROPERTY)
+        self.__project_id = self.__properties.get(ApplicationConstants.KEYSTONE_PROJECT_ID_KEY_PROPERTY)
+        self.__user_id = self.__properties.get(ApplicationConstants.KEYSTONE_USER_ID_KEY_PROPERTY)
+        self.__password = self.__properties.get(ApplicationConstants.KEYSTONE_PASSWORD_KEY_PROPERTY)
 
     def create_token(self):
+        logging.debug("Creating openstackV3 token...")
         if not self.validate_credentials(self.__project_id, self.__user_id, self.__password):
+            logging.error("Credentials are invalid")
             return None
         json_payload = self.mount_json(self.__project_id, self.__user_id, self.__password)
-        current_token_endpoint = self.__keystone_url + self.__keystone_v3_auth_endpoint
+        current_token_endpoint = self.__keystone_url + self.__keystone_url_endpoint
         response = self.do_post_request(current_token_endpoint, json_payload)
         return self.get_token_from_response(response)
 
     @staticmethod
+    def get_properties():
+        properties = {}
+        local_path = os.getcwd()
+        print local_path
+        with open('%s/simple_page/conf.properties' % local_path, 'r') as f:
+            for line in f:
+                line = line.rstrip()  # removes trailing whitespace and '\n' chars
+
+                if "=" not in line: continue  # skips blanks and comments w/o =
+                if line.startswith("#"): continue  # skips comments which contain =
+
+                k, v = line.split("=", 1)
+                properties[k] = v
+
+        return properties
+
+    @staticmethod
     def validate_credentials(project_id, user_id, password):
         if (project_id is None) or (not project_id):
+            logging.error("Invalid value %s for project_id" % project_id)
             return False
         if (user_id is None) or (not user_id):
+            logging.error("Invalid value %s for user_id" % user_id)
             return False
         if (password is None) or (not password):
             return False

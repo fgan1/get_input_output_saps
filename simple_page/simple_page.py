@@ -3,7 +3,7 @@ from jinja2 import TemplateNotFound
 from flask import request
 from core.plugins.identity.openstack.openstack_token_plugin import OpenstackV3TokenGenerator
 import subprocess
-import os, sys
+import os
 
 SWIFT_URL_PROPERTIE="SWIFT_URL"
 SWIFT_STORAGE_URL_KEY_PROPERTIE="SWIFT_STORAGE_URL"
@@ -19,9 +19,9 @@ simple_page = Blueprint('simple_page', __name__, template_folder='templates')
 static = Blueprint('simple_page', __name__, static_folder='static')
 
 properties = {}
-local_path = os.getcwd();
+local_path = os.getcwd()
 print local_path
-with open('%s/simple_page/conf.properties' % (local_path), 'r') as f:
+with open('%s/simple_page/conf.properties' % local_path, 'r') as f:
     for line in f:
         line = line.rstrip() #removes trailing whitespace and '\n' chars
 
@@ -75,16 +75,14 @@ def get_output_url():
 
 @simple_page.route('/input-list', methods=['GET'])
 def get_input_list_url():
-    swift_url = properties.get(SWIFT_URL_PROPERTIE)
     swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
     input_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
-    swift_conatiner_name = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+    swift_conatiner_name = properties.get(SWIFT_CONTAINER_NAME_KEY_PROPERTIE)
 
     # Token generation
     token_generator = OpenstackV3TokenGenerator()
     swift_auth_token = token_generator.create_token()
-
-    print swift_url
+    print swift_auth_token
 
     input_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url,
@@ -98,7 +96,6 @@ def get_input_list_url():
 
 @simple_page.route('/output-list', methods=['GET'])
 def get_output_list_url():
-    swift_url = properties.get(SWIFT_URL_PROPERTIE)
     swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
     output_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
     swift_conatiner_name = properties.get(SWIFT_CONTAINER_NAME_KEY_PROPERTIE)
@@ -106,8 +103,7 @@ def get_output_list_url():
     # Token generation
     token_generator = OpenstackV3TokenGenerator()
     swift_auth_token = token_generator.create_token()
-
-    print swift_url
+    print swift_auth_token
 
     output_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url,
