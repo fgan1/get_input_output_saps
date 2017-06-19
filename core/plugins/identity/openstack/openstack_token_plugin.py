@@ -7,6 +7,7 @@ import requests
 class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
 
     def __init__(self):
+        super(token_generator.TokenGenerator, self).__init__()
         self.__config = ConfigParser.ConfigParser()
         self.__config_section_map = self.__config.read(ApplicationConstants.DEFAULT_CONFIG_FILE_PATH)
         self.__keystone_url = self.__config_section_map("SectionOne")["keystone_auth_url"]
@@ -15,7 +16,6 @@ class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
         self.__user_id = self.__config_section_map("SectionTwo")["keystone_user_id"]
         self.__password = self.__config_section_map("SectionTwo")["keystone_password"]
 
-    @token_generator.abstractmethod
     def create_token(self):
         if not self.validate_credentials(self.__project_id, self.__user_id, self.__password):
             return None
