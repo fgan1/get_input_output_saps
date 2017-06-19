@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
 from flask import request
-from sets import Set
+from core.plugins.identity.openstack.openstack_token_plugin import OpenstackV3TokenGenerator
 import subprocess
 import os, sys
 
@@ -31,6 +31,7 @@ with open('%s/simple_page/conf.properties' % (local_path), 'r') as f:
         k, v = line.split("=", 1)
         properties[k] = v
 
+
 @simple_page.route('/', defaults={'page': 'input'})
 @simple_page.route('/<page>')
 def show(page):
@@ -38,6 +39,7 @@ def show(page):
         return render_template('pages/%s.html' % page)
     except TemplateNotFound:
         abort(404)
+
 
 @simple_page.route('/input', methods=['POST'])
 def get_input_url():
@@ -52,6 +54,7 @@ def get_input_url():
     url = "%s%s" % (swift_url, image_temp_url)
     return render_template('pages/result.html', url=url)
 
+
 @simple_page.route('/output', methods=['POST'])
 def get_output_url():
     swift_url = properties.get(SWIFT_URL_PROPERTIE)
@@ -65,38 +68,48 @@ def get_output_url():
     url = "%s%s" % (swift_url, image_temp_url)
     return render_template('pages/result.html', url=url)    
 
+
 @simple_page.route('/input-list', methods=['GET'])
 def get_input_list_url():
     swift_url = properties.get(SWIFT_URL_PROPERTIE)
-    swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
-    swift_auth_token = # insert here a token generator
     swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
     input_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
     swift_conatiner_name = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+
+    # Token generation
+    token_generator = OpenstackV3TokenGenerator()
+    swift_auth_token = token_generator.create_token()
+
     print swift_url
 
     input_set = set()
-    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url, input_files_prefix, swift_conatiner_name)
-    for line in subprocess.subprocess.check_output(cmd, shell=True).split('\n'):
-        line_split = line.split('/')
-	input_set.add(line_split[-2])
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url,
+                                                                          input_files_prefix, swift_conatiner_name)
+    for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
+        line_split = output_line.split('/')
+        input_set.add(line_split[-2])
     
     return render_template('pages/input-list.html', input_set=input_set)
+
 
 @simple_page.route('/output-list', methods=['GET'])
 def get_output_list_url():
     swift_url = properties.get(SWIFT_URL_PROPERTIE)
-    swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
-    swift_auth_token = # insert here a token generator
     swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
-    input_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
+    output_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
     swift_conatiner_name = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)
+
+    # Token generation
+    token_generator = OpenstackV3TokenGenerator()
+    swift_auth_token = token_generator.create_token()
+
     print swift_url
 
     output_set = set()
-    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url, output_files_prefix, swift_conatiner_name)
-    for line in subprocess.subprocess.check_output(cmd, shell=True).split('\n'):
-        line_split = line.split('/')
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url,
+                                                                          output_files_prefix, swift_conatiner_name)
+    for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
+        line_split = output_line.split('/')
         output_set.add(line_split[-2])
     
     return render_template('pages/output-list.html', output_set=output_set)
