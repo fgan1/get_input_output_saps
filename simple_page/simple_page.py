@@ -66,6 +66,7 @@ def get_output_url():
 @simple_page.route('/input-list', methods=['GET'])
 def get_input_list_url():
     swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    swift_url_storage_endpoint = properties.get(ApplicationConstants.SWIFT_URL_STORAGE_ENDPOINT_PROPERTY)
     input_files_prefix = properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY)
     swift_conatiner_name = properties.get(ApplicationConstants.SWIFT_CONTAINER_NAME_KEY_PROPERTY)
 
@@ -75,7 +76,8 @@ def get_input_list_url():
     print swift_auth_token
 
     input_set = set()
-    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_url,
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
+                                                                          swift_url + swift_url_storage_endpoint,
                                                                           input_files_prefix, swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
@@ -87,6 +89,7 @@ def get_input_list_url():
 @simple_page.route('/output-list', methods=['GET'])
 def get_output_list_url():
     swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    swift_url_storage_endpoint = properties.get(ApplicationConstants.SWIFT_URL_STORAGE_ENDPOINT_PROPERTY)
     output_files_prefix = properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY)
     swift_conatiner_name = properties.get(ApplicationConstants.SWIFT_CONTAINER_NAME_KEY_PROPERTY)
 
@@ -96,7 +99,8 @@ def get_output_list_url():
     print swift_auth_token
 
     output_set = set()
-    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_url,
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
+                                                                          swift_url + swift_url_storage_endpoint,
                                                                           output_files_prefix, swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
