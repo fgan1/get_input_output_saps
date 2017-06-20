@@ -73,7 +73,6 @@ def get_input_list_url():
     # Token generation
     token_generator = OpenstackV3TokenGenerator()
     swift_auth_token = token_generator.create_token()
-    print swift_auth_token
 
     input_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
@@ -81,7 +80,8 @@ def get_input_list_url():
                                                                           input_files_prefix, swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
-        input_set.add(line_split[-2])
+        if len(line_split) > 1:
+            input_set.add(line_split[-2])
     
     return render_template('pages/input-list.html', input_set=input_set)
 
@@ -96,7 +96,6 @@ def get_output_list_url():
     # Token generation
     token_generator = OpenstackV3TokenGenerator()
     swift_auth_token = token_generator.create_token()
-    print swift_auth_token
 
     output_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
@@ -104,6 +103,7 @@ def get_output_list_url():
                                                                           output_files_prefix, swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
-        output_set.add(line_split[-2])
+        if len(line_split) > 1:
+            output_set.add(line_split[-2])
     
     return render_template('pages/output-list.html', output_set=output_set)
