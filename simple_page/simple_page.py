@@ -90,7 +90,7 @@ def get_input_list_url():
 def get_output_list_url():
     swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
     swift_url_storage_endpoint = properties.get(ApplicationConstants.SWIFT_URL_STORAGE_ENDPOINT_PROPERTY)
-    output_files_prefix = properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY)
+    output_files_prefix = properties.get(ApplicationConstants.SWIFT_OUTPUT_FILES_PREFIX_KEY_PROPERTY)
     swift_conatiner_name = properties.get(ApplicationConstants.SWIFT_CONTAINER_NAME_KEY_PROPERTY)
 
     # Token generation
