@@ -1,6 +1,5 @@
 from core.plugins.identity import token_generator
 from utils.constants import ApplicationConstants
-import ConfigParser
 import requests
 import logging
 import os
@@ -32,7 +31,7 @@ class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
         properties = {}
         local_path = os.getcwd()
         print local_path
-        with open('%s/simple_page/conf.properties' % local_path, 'r') as f:
+        with open('/local/esdras/git/get_input_output_saps/simple_page/conf.properties', 'r') as f:
             for line in f:
                 line = line.rstrip()  # removes trailing whitespace and '\n' chars
 
@@ -73,6 +72,6 @@ class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
 
         access_id = None
         for key in headers.keys():
-            if key == 'X_SUBJECT_TOKEN':
+            if key == 'X-Subject-Token':
                 access_id = headers.get(key)
         return access_id

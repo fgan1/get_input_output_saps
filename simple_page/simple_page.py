@@ -2,18 +2,10 @@ from flask import Blueprint, render_template, abort
 from jinja2 import TemplateNotFound
 from flask import request
 from core.plugins.identity.openstack.openstack_token_plugin import OpenstackV3TokenGenerator
+from utils.constants import ApplicationConstants
 import subprocess
 import os
 
-SWIFT_URL_PROPERTIE="SWIFT_URL"
-SWIFT_STORAGE_URL_KEY_PROPERTIE="SWIFT_STORAGE_URL"
-SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE="SWIFT_INPUT_FILES_PREFIX"
-SWIFT_OUTPUT_FILES_PREFIX_KEY_PROPERTIE="SWIFT_OUTPUT_FILES_PREFIX"
-SWIFT_CONTAINER_NAME_KEY_PROPERTIE="SWIFT_CONTAINER_NAME"
-
-SWIFT_URL_PROPERTIE="SWIFT_URL"
-SWIFT_TEMP_URL_KEY_PROPERTIE="SWIFT_TEMP_URL_KEY"
-TEMP_URL_EXPIRATION_TIME=10800
 
 simple_page = Blueprint('simple_page', __name__, template_folder='templates')
 static = Blueprint('simple_page', __name__, static_folder='static')
@@ -43,14 +35,13 @@ def show(page):
 
 @simple_page.route('/input', methods=['POST'])
 def get_input_url():
-    swift_url = properties.get(SWIFT_URL_PROPERTIE)
-    swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)	
+    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    swift_key = properties.get(ApplicationConstants.SWIFT_TEMP_URL_KEY_PROPERTY)
     image_name = request.form['image']
     print swift_url
 
-    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" % (TEMP_URL_EXPIRATION_TIME,
-                                                                                             image_name, image_name,
-                                                                                             swift_key)
+    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" % \
+          (ApplicationConstants.TEMP_URL_EXPIRATION_TIME, image_name, image_name, swift_key)
     image_temp_url = subprocess.check_output(cmd, shell=True)
 
     url = "%s%s" % (swift_url, image_temp_url)
@@ -59,14 +50,13 @@ def get_input_url():
 
 @simple_page.route('/output', methods=['POST'])
 def get_output_url():
-    swift_url = properties.get(SWIFT_URL_PROPERTIE)
-    swift_key = properties.get(SWIFT_TEMP_URL_KEY_PROPERTIE)	
+    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    swift_key = properties.get(ApplicationConstants.SWIFT_TEMP_URL_KEY_PROPERTY)
     image_name = request.form['image']
     variable = request.form['variable']
 
-    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/images/%s/%s_%s.nc %s" % (TEMP_URL_EXPIRATION_TIME,
-                                                                                            image_name, image_name,
-                                                                                            variable, swift_key)
+    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/images/%s/%s_%s.nc %s" % \
+          (ApplicationConstants.TEMP_URL_EXPIRATION_TIME, image_name, image_name, variable, swift_key)
     image_temp_url = subprocess.check_output(cmd, shell=True)
 
     url = "%s%s" % (swift_url, image_temp_url)
@@ -75,9 +65,9 @@ def get_output_url():
 
 @simple_page.route('/input-list', methods=['GET'])
 def get_input_list_url():
-    swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
-    input_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
-    swift_conatiner_name = properties.get(SWIFT_CONTAINER_NAME_KEY_PROPERTIE)
+    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    input_files_prefix = properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY)
+    swift_conatiner_name = properties.get(ApplicationConstants.SWIFT_CONTAINER_NAME_KEY_PROPERTY)
 
     # Token generation
     token_generator = OpenstackV3TokenGenerator()
@@ -85,7 +75,7 @@ def get_input_list_url():
     print swift_auth_token
 
     input_set = set()
-    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url,
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_url,
                                                                           input_files_prefix, swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
@@ -96,9 +86,9 @@ def get_input_list_url():
 
 @simple_page.route('/output-list', methods=['GET'])
 def get_output_list_url():
-    swift_storage_url = properties.get(SWIFT_STORAGE_URL_KEY_PROPERTIE)
-    output_files_prefix = properties.get(SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTIE)
-    swift_conatiner_name = properties.get(SWIFT_CONTAINER_NAME_KEY_PROPERTIE)
+    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    output_files_prefix = properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY)
+    swift_conatiner_name = properties.get(ApplicationConstants.SWIFT_CONTAINER_NAME_KEY_PROPERTY)
 
     # Token generation
     token_generator = OpenstackV3TokenGenerator()
@@ -106,7 +96,7 @@ def get_output_list_url():
     print swift_auth_token
 
     output_set = set()
-    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_storage_url,
+    cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token, swift_url,
                                                                           output_files_prefix, swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
