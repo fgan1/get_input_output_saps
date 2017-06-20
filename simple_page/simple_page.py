@@ -15,10 +15,10 @@ local_path = os.getcwd()
 print local_path
 with open('%s/simple_page/conf.properties' % local_path, 'r') as f:
     for line in f:
-        line = line.rstrip() #removes trailing whitespace and '\n' chars
+        line = line.rstrip()  # removes trailing whitespace and '\n' chars
 
-        if "=" not in line: continue #skips blanks and comments w/o =
-        if line.startswith("#"): continue #skips comments which contain =
+        if "=" not in line: continue  # skips blanks and comments w/o =
+        if line.startswith("#"): continue  # skips comments which contain =
 
         k, v = line.split("=", 1)
         properties[k] = v
@@ -35,36 +35,14 @@ def show(page):
 
 @simple_page.route('/input', methods=['POST'])
 def get_input_url():
-    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
-    swift_key = properties.get(ApplicationConstants.SWIFT_TEMP_URL_KEY_PROPERTY)
     image_name = request.form['image']
-    print swift_url
 
-    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/inputs/%s/%s.tar.gz %s" % \
-          (ApplicationConstants.TEMP_URL_EXPIRATION_TIME, image_name, image_name, swift_key)
-    image_temp_url = subprocess.check_output(cmd, shell=True)
-
-    url = "%s%s" % (swift_url, image_temp_url)
-    return render_template('pages/result.html', url=url)
+    input_set = get_inputs(image_name)
+    input_urls = generate_links_for_inputs(input_set)
+    return render_template('pages/result.html', url=input_urls)
 
 
-@simple_page.route('/output', methods=['POST'])
-def get_output_url():
-    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
-    swift_key = properties.get(ApplicationConstants.SWIFT_TEMP_URL_KEY_PROPERTY)
-    image_name = request.form['image']
-    variable = request.form['variable']
-
-    cmd = "swift tempurl GET %s /swift/v1/sebal_container/fetcher/images/%s/%s_%s.nc %s" % \
-          (ApplicationConstants.TEMP_URL_EXPIRATION_TIME, image_name, image_name, variable, swift_key)
-    image_temp_url = subprocess.check_output(cmd, shell=True)
-
-    url = "%s%s" % (swift_url, image_temp_url)
-    return render_template('pages/result.html', url=url)    
-
-
-@simple_page.route('/input-list', methods=['GET'])
-def get_input_list_url():
+def get_inputs(image_name):
     swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
     swift_url_storage_endpoint = properties.get(ApplicationConstants.SWIFT_URL_STORAGE_ENDPOINT_PROPERTY)
     input_files_prefix = properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY)
@@ -77,17 +55,45 @@ def get_input_list_url():
     input_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
                                                                           swift_url + swift_url_storage_endpoint,
-                                                                          input_files_prefix, swift_conatiner_name)
+                                                                          input_files_prefix + "/" + image_name,
+                                                                          swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
         if len(line_split) > 1:
             input_set.add(line_split[-2])
-    
-    return render_template('pages/input-list.html', input_set=input_set)
+
+    return input_set
 
 
-@simple_page.route('/output-list', methods=['GET'])
-def get_output_list_url():
+def generate_links_for_inputs(input_set):
+    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    swift_key = properties.get(ApplicationConstants.SWIFT_TEMP_URL_KEY_PROPERTY)
+
+    download_links = set()
+    for input_name in input_set:
+        cmd = "swift tempurl GET %s /swift/v1/sebal_container/%s/%s/%s.tar.gz %s" % \
+              (ApplicationConstants.TEMP_URL_EXPIRATION_TIME,
+               properties.get(ApplicationConstants.SWIFT_INPUT_FILES_PREFIX_KEY_PROPERTY), input_name, input_name,
+               swift_key)
+        image_temp_url = subprocess.check_output(cmd, shell=True)
+
+        url = "%s%s" % (swift_url, image_temp_url)
+        download_links.add(url)
+
+    return download_links
+
+
+@simple_page.route('/output', methods=['POST'])
+def get_output_url():
+    image_name = request.form['image']
+    variable = request.form['variable']
+
+    output_list = get_outputs(image_name)
+    output_urls = generate_links_for_outputs(output_list, variable)
+    return render_template('pages/result.html', url=output_urls)
+
+
+def get_outputs(image_name):
     swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
     swift_url_storage_endpoint = properties.get(ApplicationConstants.SWIFT_URL_STORAGE_ENDPOINT_PROPERTY)
     output_files_prefix = properties.get(ApplicationConstants.SWIFT_OUTPUT_FILES_PREFIX_KEY_PROPERTY)
@@ -100,10 +106,29 @@ def get_output_list_url():
     output_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
                                                                           swift_url + swift_url_storage_endpoint,
-                                                                          output_files_prefix, swift_conatiner_name)
+                                                                          output_files_prefix + "/" + image_name,
+                                                                          swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
         if len(line_split) > 1:
             output_set.add(line_split[-2])
-    
-    return render_template('pages/output-list.html', output_set=output_set)
+
+    return output_set
+
+
+def generate_links_for_outputs(output_set, variable):
+    swift_url = properties.get(ApplicationConstants.SWIFT_URL_PROPERTY)
+    swift_key = properties.get(ApplicationConstants.SWIFT_TEMP_URL_KEY_PROPERTY)
+
+    download_links = set()
+    for output_name in output_set:
+        cmd = "swift tempurl GET %s /swift/v1/sebal_container/%s/%s/%s_%s.nc %s" % \
+              (ApplicationConstants.TEMP_URL_EXPIRATION_TIME,
+               properties.get(ApplicationConstants.SWIFT_OUTPUT_FILES_PREFIX_KEY_PROPERTY), output_name, output_name,
+               variable, swift_key)
+        image_temp_url = subprocess.check_output(cmd, shell=True)
+
+        url = "%s%s" % (swift_url, image_temp_url)
+        download_links.add(url)
+
+    return download_links
