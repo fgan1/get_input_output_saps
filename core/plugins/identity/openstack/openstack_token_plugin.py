@@ -31,7 +31,7 @@ class OpenstackV3TokenGenerator(token_generator.TokenGenerator):
         properties = {}
         local_path = os.getcwd()
         print local_path
-        with open('/local/esdras/git/get_input_output_saps/simple_page/conf.properties', 'r') as f:
+        with open('%s/simple_page/conf.properties' % local_path, 'r') as f:
             for line in f:
                 line = line.rstrip()  # removes trailing whitespace and '\n' chars
 
