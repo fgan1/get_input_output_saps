@@ -55,7 +55,7 @@ def get_inputs(image_name):
     input_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
                                                                           swift_url + swift_url_storage_endpoint,
-                                                                          "%s/%s" % (input_files_prefix, image_name),
+                                                                          "%s/%s" % (input_files_prefix,image_name),
                                                                           swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
@@ -106,7 +106,7 @@ def get_outputs(image_name):
     output_set = set()
     cmd = "swift --os-auth-token %s --os-storage-url %s list -p %s %s" % (swift_auth_token,
                                                                           swift_url + swift_url_storage_endpoint,
-                                                                          "%s/%s" % (output_files_prefix, image_name),
+                                                                          "%s/%s" % (output_files_prefix,image_name),
                                                                           swift_conatiner_name)
     for output_line in subprocess.check_output(cmd, shell=True).split('\n'):
         line_split = output_line.split('/')
