@@ -38,8 +38,8 @@ def get_input_url():
     image_name = request.form['image']
 
     input_set = get_inputs(image_name)
-    input_urls = generate_links_for_inputs(input_set)
-    return render_template('pages/result.html', url=input_urls)
+    url_set = generate_links_for_inputs(input_set)
+    return render_template('pages/result.html', url_set=url_set)
 
 
 def get_inputs(image_name):
@@ -89,8 +89,8 @@ def get_output_url():
     variable = request.form['variable']
 
     output_list = get_outputs(image_name)
-    output_urls = generate_links_for_outputs(output_list, variable)
-    return render_template('pages/result.html', url=output_urls)
+    url_set = generate_links_for_outputs(output_list, variable)
+    return render_template('pages/result.html', url_set=url_set)
 
 
 def get_outputs(image_name):
