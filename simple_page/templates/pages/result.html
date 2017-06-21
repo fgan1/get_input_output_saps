@@ -12,24 +12,15 @@
       <body>
         <table>
           <tr>
-            <td>Text to Save:</td>
+            <td>Download Links:</td>
           </tr>
           <tr>
             <td colspan="3">
               <textarea id="inputTextToSave" cols="80" rows="25">
                 {% for url in url_set %}
-                  <a href="{{ url }}">{{ url }}</a>
+                  {{ url }}
                 {% endfor %}
               </textarea>
-            </td>
-          </tr>
-          <tr>
-            <td>Filename to Save As:</td>
-            <td>
-              <input id="inputFileNameToSaveAs"></input>
-            </td>
-            <td>
-              <button onclick="saveTextAsFile()">Save Text to File</button>
             </td>
           </tr>
           <tr>
