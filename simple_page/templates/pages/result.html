@@ -17,9 +17,7 @@
           <tr>
             <td colspan="3">
               <textarea id="inputTextToSave" cols="80" rows="25">
-                {% for url in url_set %}
-{{ url }}
-                {% endfor %}
+                {% for url in url_set %}{{ url }}{% endfor %}
               </textarea>
             </td>
           </tr>
